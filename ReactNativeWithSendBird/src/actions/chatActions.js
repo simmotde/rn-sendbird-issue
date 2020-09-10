@@ -327,25 +327,13 @@ export const onFileButtonPress = (channelUrl, isOpenChannel, source) => {
     if (isOpenChannel) {
       return sbGetOpenChannel(channelUrl)
         .then(channel => {
-          return sendFileMessage(dispatch, channel, source);
-        })
-        .then(message => {
-          dispatch({
-            type: SEND_MESSAGE_SUCCESS,
-            message: message
-          });
+          sendFileMessage(dispatch, channel, source);
         })
         .catch(error => dispatch({ type: SEND_MESSAGE_FAIL }));
     } else {
       return sbGetGroupChannel(channelUrl)
         .then(channel => {
-          return sendFileMessage(dispatch, channel, source);
-        })
-        .then(message => {
-          dispatch({
-            type: SEND_MESSAGE_SUCCESS,
-            message: message
-          });
+          sendFileMessage(dispatch, channel, source);
         })
         .catch(error => {
           dispatch({ type: SEND_MESSAGE_FAIL });
@@ -355,15 +343,23 @@ export const onFileButtonPress = (channelUrl, isOpenChannel, source) => {
 };
 
 const sendFileMessage = (dispatch, channel, file) => {
-  return new Promise((resolve, reject) => {
-    sbSendFileMessage(channel, file, (message, error) => {
+  var fileMessageTemp = sbSendFileMessage(channel, file,
+    (reqId, progress) => {
+      // do nothing - this is a test
+    },
+    (message, error) => {
       if (error) {
-        reject(error);
+        Sentry.captureMessage(new Error(error), 'error')
+        dispatch({ type: SEND_MESSAGE_FAIL, error: error })
       } else {
-        resolve(message);
+        console.log(message)
+        dispatch({ type: SEND_MESSAGE_SUCCESS, message: message })
       }
-    });
-  });
+    }
+  )
+  console.log(fileMessageTemp)
+  fileMessageTemp.localPath = file.uri
+  dispatch({ type: SEND_MESSAGE_TEMPORARY, message: fileMessageTemp })
 };
 
 export const typingStart = channelUrl => {

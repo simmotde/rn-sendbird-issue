@@ -39,23 +39,22 @@ export const sbSendTextMessage = (channel, textMessage, callback) => {
   });
 };
 
-export const sbSendFileMessage = (channel, file, callback) => {
-  const data = '';
-  const customType = '';
-  const thumbSizeList = [{ maxWidth: 160, maxHeight: 160 }];
-  const startTime = Date.now() / 1000;
-  const clearIntervalId = setInterval(() => {
-    const curTime = Date.now() / 1000;
-    if (curTime - startTime > 1 * 60 * 60) {
-      clearInterval(clearIntervalId);
-    }
-    if (SendBird.getInstance() && SendBird.getInstance().getConnectionState() === 'OPEN') {
-      clearInterval(clearIntervalId);
-      channel.sendFileMessage(file, data, customType, thumbSizeList, (message, error) => {
-        callback(message, error);
-      });
-    }
-  }, 500);
+export const sbSendFileMessage = (channel, file, progressCallback, callback) => {
+  const sb = SendBird.getInstance()
+  const params = new sb.FileMessageParams()
+  params.file = file
+  params.data = ''
+  params.customType = ''
+  params.thumbnailSizes = [{ maxWidth: 160, maxHeight: 160 }]
+
+  return channel.sendFileMessage(params,
+    (event, reqId) => {
+      var progress = event.loaded / event.total
+      progressCallback(reqId, progress)
+    },
+    (message, error) => {
+      callback(message, error)
+    })
 };
 
 export const sbTypingStart = channelUrl => {

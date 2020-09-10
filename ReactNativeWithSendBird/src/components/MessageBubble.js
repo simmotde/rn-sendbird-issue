@@ -25,7 +25,11 @@ export class MessageBubble extends Component {
     if (message.isUserMessage()) {
       return <TextItem isUser={this.props.isUser} message={message.message} />;
     } else if (_isImage(this.props)) {
-      return <ImageItem isUser={this.props.isUser} message={message.url.replace('http://', 'https://')} />;
+      var url = message.url.replace('http://', 'https://')
+      if (message.localPath) {
+        url = message.localPath
+      }
+      return <ImageItem isUser={this.props.isUser} message={url} />;
     } else if (_isVideo(this.props)) {
       return (
         <View style={styles.videoContainer}>
